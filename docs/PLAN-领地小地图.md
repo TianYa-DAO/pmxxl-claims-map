@@ -20,7 +20,7 @@
 
 1. server/ —— 服务端插件（Maven）
    pom.xml
-   src/main/java/com/horizonkk/pmxxlclaims/PmxxlClaims.java
+   src/main/java/com/tianyaworld/pmxxlclaims/PmxxlClaims.java
    .../claim/{ClaimIndex,ClaimSnapshot,ClaimPublisher}.java
    .../net/ClaimCodec.java
    .../listener/{PlayerMoveListener,ResidenceListener}.java
@@ -28,7 +28,7 @@
    src/main/resources/{plugin.yml,config.yml}
 2. client/ —— 客户端模组（Gradle + Fabric Loom）
    build.gradle / gradle.properties / settings.gradle
-   src/main/java/com/horizonkk/pmxxlclaims/client/{PmxxlClaimsClient,net/ClaimPayload,claim/ClaimCache,render/{MinimapRenderer,ClaimOverlay,ChunkColorCache},config/ClaimsClientConfig}.java
+   src/main/java/com/tianyaworld/pmxxlclaims/client/{PmxxlClaimsClient,net/ClaimPayload,claim/ClaimCache,render/{MinimapRenderer,ClaimOverlay,ChunkColorCache},config/ClaimsClientConfig}.java
    src/main/resources/{fabric.mod.json,pmxxlclaims.mixins.json}
 
 ## 4. 协议（v1，单向 S2C）
