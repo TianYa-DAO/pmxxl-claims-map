@@ -1,0 +1,18 @@
+name: PmxxlClaims
+version: 1.0.0
+main: com.tianyaworld.pmxxlclaims.PmxxlClaims
+api-version: '1.21'
+prefix: 领地地图
+website: https://pmxxl.cn
+authors: [TianYa-DAO]
+description: 小地图领地数据下发
+depend: [Residence]
+commands:
+  claimsmap:
+    description: PmxxlClaims admin command
+    usage: /<command> [reload|debug]
+    aliases: [cm]
+permissions:
+  pmxxlclaims.admin:
+    description: Admin permission
+    default: op

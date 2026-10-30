@@ -1,0 +1,18 @@
+# build outputs
+target/
+build/
+out/
+.gradle/
+run/
+loom-cache/
+
+# ide
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# logs and temp
+*.log
+*.tmp
+.DS_Store

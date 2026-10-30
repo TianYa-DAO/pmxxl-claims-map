@@ -1,0 +1,10 @@
+# 推送半径，单位区块（1 区块 = 16 格）。默认 16（256 格见方），允许 1-32。
+# 调大会增加服务端查询与报文体积，32 已是上限。
+radius-chunks: 16
+
+# 是否把领地拥有者名字一起下发（客户端当前只显示领地名，会忽略这个字段）
+send-owner: false
+
+# 仅当使用 BungeeCord/Velocity 且代理不转发客户端频道注册时才设为 true。
+# 默认 false：只给真正注册了 pmxxl:claims 频道的客户端发，避免给原版玩家白算数据。
+assume-client-unregistered: false
