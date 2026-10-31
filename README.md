@@ -79,3 +79,9 @@ assume-client-unregistered: false
 ## License
 
 All Rights Reserved。
+
+## JourneyMap 集成（推荐）
+
+1. 玩家安装 JourneyMap 1.21.11-6.0.0+（Fabric）后，本模组不再自己画小地图，而是作为 JourneyMap 插件，把领地范围画在 JourneyMap 的小地图与全屏地图上（API v2 的 PolygonOverlay）。
+2. 未安装 JourneyMap 时自动回落到模组自带的简易小地图。
+3. 构建依赖：`info.journeymap:journeymap-api-fabric:2.0.0-1.21.11-SNAPSHOT`，仓库 `https://jm.gserv.me/repository/maven-public/`；仅 compileOnly，不随本模组分发任何 JourneyMap 代码或 jar（JourneyMap 为 All Rights Reserved，只通过其公开 API 使用）。
