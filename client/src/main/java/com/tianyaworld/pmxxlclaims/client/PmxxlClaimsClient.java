@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import com.tianyaworld.pmxxlclaims.client.jm.ClaimsOverlayManager;
 import net.minecraft.util.Identifier;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
@@ -54,6 +55,7 @@ public final class PmxxlClaimsClient implements ClientModInitializer {
             }
             AutoScanner.tick(client);
             ChatParser.tick();
+            ClaimsOverlayManager.tick(client);
         });
         HudElementRegistry.attachElementAfter(VanillaHudElements.MISC_OVERLAYS, Identifier.of("pmxxlclaims", "minimap"), new MinimapRenderer());
         LOGGER.info("PmxxlClaims client initialized (server push + chat fallback)");

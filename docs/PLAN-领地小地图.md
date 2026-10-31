@@ -14,13 +14,13 @@
 3. 附近查询有现成索引，不需要加载区块：ResidenceManager.getResidences(String worldName, List<ChunkRef>)，ChunkRef 有 public 构造 (int x, int z)。
 4. 变更事件齐全：ResidenceCreationEvent / ResidenceDeleteEvent / ResidenceSizeChangeEvent / ResidenceRenameEvent / ResidenceOwnerChangeEvent / ResidenceAreaAddEvent / ResidenceAreaDeleteEvent。
 5. 客户端：Fabric 1.21.11（Fabric Loader 0.20.1），现有模组里没有任何小地图，需要自研底图。
-6. 模板与代码规范：本地已下载 pmxxl/ItemAction 与 TianYa-DAOQuestPlus 两份源码，Maven + Java 21 + spigot-api provided + shade，包结构 api/command/event/gui/hook/manager/model/util，plugin.yml api-version 1.21 + 中文 prefix。团队要求：尽量不用反射。
+6. 模板与代码规范：本地已下载 pmxxl/ItemAction 与 HorizonKKQuestPlus 两份源码，Maven + Java 21 + spigot-api provided + shade，包结构 api/command/event/gui/hook/manager/model/util，plugin.yml api-version 1.21 + 中文 prefix。团队要求：尽量不用反射。
 
 ## 3. 工程布局（都放工作目录）
 
 1. server/ —— 服务端插件（Maven）
    pom.xml
-   src/main/java/com/tianyaworld/pmxxlclaims/PmxxlClaims.java
+   src/main/java/com/horizonkk/pmxxlclaims/PmxxlClaims.java
    .../claim/{ClaimIndex,ClaimSnapshot,ClaimPublisher}.java
    .../net/ClaimCodec.java
    .../listener/{PlayerMoveListener,ResidenceListener}.java
@@ -28,7 +28,7 @@
    src/main/resources/{plugin.yml,config.yml}
 2. client/ —— 客户端模组（Gradle + Fabric Loom）
    build.gradle / gradle.properties / settings.gradle
-   src/main/java/com/tianyaworld/pmxxlclaims/client/{PmxxlClaimsClient,net/ClaimPayload,claim/ClaimCache,render/{MinimapRenderer,ClaimOverlay,ChunkColorCache},config/ClaimsClientConfig}.java
+   src/main/java/com/horizonkk/pmxxlclaims/client/{PmxxlClaimsClient,net/ClaimPayload,claim/ClaimCache,render/{MinimapRenderer,ClaimOverlay,ChunkColorCache},config/ClaimsClientConfig}.java
    src/main/resources/{fabric.mod.json,pmxxlclaims.mixins.json}
 
 ## 4. 协议（v1，单向 S2C）

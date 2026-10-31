@@ -43,6 +43,10 @@ public final class MinimapRenderer implements HudElement {
     @Override
     public void render(DrawContext context, RenderTickCounter tickCounter) {
         MinecraftClient client = MinecraftClient.getInstance();
+        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("journeymap")
+                && com.tianyaworld.pmxxlclaims.client.jm.ClaimsOverlayManager.jmMinimapActive()) {
+            return;
+        }
         if (!visible || client.player == null || client.world == null || client.options.hudHidden) {
             return;
         }

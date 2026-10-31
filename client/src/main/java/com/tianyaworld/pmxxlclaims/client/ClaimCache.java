@@ -17,6 +17,7 @@ public final class ClaimCache {
     private static volatile long lastPacketAt;
     private static volatile long lastDropLogAt;
     private static volatile int packets;
+    private static volatile int contentVersion;
 
     private ClaimCache() {
     }
@@ -31,11 +32,15 @@ public final class ClaimCache {
             }
             return;
         }
+        boolean changed = !result.world().equals(world) || !result.claims().equals(claims);
         world = result.world();
         claims = result.claims();
         active = true;
         lastPacketAt = System.currentTimeMillis();
         packets++;
+        if (changed) {
+            contentVersion++;
+        }
     }
 
     public static void reset() {
@@ -44,6 +49,7 @@ public final class ClaimCache {
         active = false;
         lastPacketAt = 0L;
         packets++;
+        contentVersion++;
     }
 
     public static List<ClaimCodec.Claim> claimsFor(String worldId) {
@@ -59,5 +65,9 @@ public final class ClaimCache {
 
     public static int packets() {
         return packets;
+    }
+
+    public static int contentVersion() {
+        return contentVersion;
     }
 }

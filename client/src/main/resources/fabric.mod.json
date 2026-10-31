@@ -8,7 +8,11 @@
   "license": "All-Rights-Reserved",
   "environment": "client",
   "entrypoints": {
-    "client": ["com.tianyaworld.pmxxlclaims.client.PmxxlClaimsClient"]
+    "client": ["com.tianyaworld.pmxxlclaims.client.PmxxlClaimsClient"],
+    "journeymap": ["com.tianyaworld.pmxxlclaims.client.jm.ClaimsJourneyMapPlugin"]
+  },
+  "suggests": {
+    "journeymap": ">=1.21.11-6.0.0"
   },
   "depends": {
     "fabricloader": ">=0.16.0",
