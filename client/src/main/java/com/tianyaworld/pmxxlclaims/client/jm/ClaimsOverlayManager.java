@@ -53,6 +53,9 @@ public final class ClaimsOverlayManager {
     }
 
     public static void tick(MinecraftClient client) {
+        if (!net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("journeymap")) {
+            return;
+        }
         IClientAPI api = ClaimsJourneyMapPlugin.api();
         if (api == null || client.player == null || client.world == null) {
             return;
