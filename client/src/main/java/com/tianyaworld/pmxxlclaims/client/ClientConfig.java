@@ -11,8 +11,6 @@ import java.nio.file.Path;
 
 public final class ClientConfig {
 
-    private static boolean autoScan = true;
-    private static long intervalMs = 1500L;
     private static boolean showCount = true;
     private static boolean minimapVisible = true;
     private static int minimapSize = 128;
@@ -20,14 +18,6 @@ public final class ClientConfig {
     private static int claimAlpha = 0x66;
 
     private ClientConfig() {
-    }
-
-    public static boolean autoScan() {
-        return autoScan;
-    }
-
-    public static long intervalMs() {
-        return intervalMs;
     }
 
     public static boolean showCount() {
@@ -66,12 +56,6 @@ public final class ClientConfig {
         }
         try {
             JsonObject root = JsonParser.parseString(Files.readString(path, StandardCharsets.UTF_8)).getAsJsonObject();
-            if (root.has("autoScan")) {
-                autoScan = root.get("autoScan").getAsBoolean();
-            }
-            if (root.has("intervalMs")) {
-                intervalMs = Math.max(500L, root.get("intervalMs").getAsLong());
-            }
             if (root.has("showCount")) {
                 showCount = root.get("showCount").getAsBoolean();
             }
@@ -93,8 +77,6 @@ public final class ClientConfig {
 
     public static void save() {
         JsonObject root = new JsonObject();
-        root.addProperty("autoScan", autoScan);
-        root.addProperty("intervalMs", intervalMs);
         root.addProperty("showCount", showCount);
         root.addProperty("minimapVisible", minimapVisible);
         root.addProperty("minimapSize", minimapSize);

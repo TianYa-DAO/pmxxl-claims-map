@@ -7,9 +7,7 @@ import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.world.ClientWorld;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public final class MinimapRenderer implements HudElement {
 
@@ -23,9 +21,7 @@ public final class MinimapRenderer implements HudElement {
 
     private static boolean visible = true;
     private static String cachedWorld = "";
-    private static int cachedPackets = -1;
     private static int cachedVersion = -1;
-    private static boolean cachedActive;
     private static List<Draw> cachedDraws = List.of();
 
     public static void toggle() {
@@ -98,14 +94,11 @@ public final class MinimapRenderer implements HudElement {
     }
 
     private List<Draw> draws(String worldId) {
-        int packets = ClaimCache.packets();
-        int version = ClaimStore.version();
-        boolean active = ClaimCache.isActive();
-        if (worldId.equals(cachedWorld) && packets == cachedPackets && version == cachedVersion && active == cachedActive) {
+        int version = ClaimCache.contentVersion();
+        if (worldId.equals(cachedWorld) && version == cachedVersion) {
             return cachedDraws;
         }
         List<Draw> out = new ArrayList<>();
-        Set<String> names = new HashSet<>();
         for (ClaimCodec.Claim claim : ClaimCache.claimsFor(worldId)) {
             List<int[]> boxes = new ArrayList<>(claim.boxes().size());
             for (ClaimCodec.Box box : claim.boxes()) {
@@ -113,24 +106,9 @@ public final class MinimapRenderer implements HudElement {
             }
             int color = claim.color() == 0 ? PALETTE[Math.floorMod(claim.name().hashCode(), PALETTE.length)] : claim.color();
             out.add(new Draw(claim.name(), color, claim.flags(), boxes.toArray(new int[0][])));
-            names.add(claim.name());
-        }
-        if (!ClaimCache.isActive()) {
-            for (ClaimStore.KnownClaim claim : ClaimStore.forWorld(worldId)) {
-                if (!names.add(claim.name())) {
-                    continue;
-                }
-                List<int[]> boxes = new ArrayList<>(claim.boxes().size());
-                for (ClaimStore.Box box : claim.boxes()) {
-                    boxes.add(new int[]{box.minX(), box.minZ(), box.maxX(), box.maxZ()});
-                }
-                out.add(new Draw(claim.name(), PALETTE[Math.floorMod(claim.name().hashCode(), PALETTE.length)], 0, boxes.toArray(new int[0][])));
-            }
         }
         cachedWorld = worldId;
-        cachedPackets = packets;
         cachedVersion = version;
-        cachedActive = active;
         cachedDraws = out;
         return out;
     }

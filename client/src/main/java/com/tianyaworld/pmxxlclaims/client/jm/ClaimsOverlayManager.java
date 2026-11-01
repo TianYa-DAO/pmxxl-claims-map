@@ -2,7 +2,6 @@ package com.tianyaworld.pmxxlclaims.client.jm;
 
 import com.tianyaworld.pmxxlclaims.client.ClaimCache;
 import com.tianyaworld.pmxxlclaims.client.ClaimCodec;
-import com.tianyaworld.pmxxlclaims.client.ClaimStore;
 import com.tianyaworld.pmxxlclaims.client.ClientConfig;
 import journeymap.api.v2.client.IClientAPI;
 import journeymap.api.v2.client.display.Context;
@@ -67,7 +66,7 @@ public final class ClaimsOverlayManager {
         lastRebuildAt = now;
         ClientWorld world = client.world;
         String worldId = world.getRegistryKey().getValue().toString();
-        String signature = worldId + "|" + ClaimCache.contentVersion() + "|" + ClaimStore.version() + "|" + ClaimCache.isActive() + "|" + ClientConfig.claimAlpha();
+        String signature = worldId + "|" + ClaimCache.contentVersion() + "|" + ClientConfig.claimAlpha();
         if (!dirty && signature.equals(lastSignature)) {
             return;
         }
@@ -119,19 +118,10 @@ public final class ClaimsOverlayManager {
 
     private static List<Entry> collect(String worldId, MinecraftClient client) {
         List<Entry> entries = new ArrayList<>();
-        if (ClaimCache.isActive()) {
-            for (ClaimCodec.Claim claim : ClaimCache.claimsFor(worldId)) {
-                for (ClaimCodec.Box box : claim.boxes()) {
-                    entries.add(new Entry(claim.name(), claim.color(), (claim.flags() & 1) != 0,
-                            box.minX(), box.minZ(), box.maxX(), box.maxZ(), client.player.getBlockY()));
-                }
-            }
-        } else {
-            for (ClaimStore.KnownClaim claim : ClaimStore.forWorld(worldId)) {
-                for (ClaimStore.Box box : claim.boxes()) {
-                    entries.add(new Entry(claim.name(), 0x4FC3F7, false,
-                            box.minX(), box.minZ(), box.maxX(), box.maxZ(), client.player.getBlockY()));
-                }
+        for (ClaimCodec.Claim claim : ClaimCache.claimsFor(worldId)) {
+            for (ClaimCodec.Box box : claim.boxes()) {
+                entries.add(new Entry(claim.name(), claim.color(), (claim.flags() & 1) != 0,
+                        box.minX(), box.minZ(), box.maxX(), box.maxZ(), client.player.getBlockY()));
             }
         }
         int px = client.player.getBlockX();
