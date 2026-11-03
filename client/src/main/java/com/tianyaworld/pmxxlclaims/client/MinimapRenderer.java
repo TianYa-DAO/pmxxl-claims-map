@@ -39,6 +39,10 @@ public final class MinimapRenderer implements HudElement {
     @Override
     public void render(DrawContext context, RenderTickCounter tickCounter) {
         MinecraftClient client = MinecraftClient.getInstance();
+        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("xaerominimap")
+                && com.tianyaworld.pmxxlclaims.client.xaero.XaeroClaimsBridge.isActive()) {
+            return;
+        }
         if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("journeymap")
                 && com.tianyaworld.pmxxlclaims.client.jm.ClaimsOverlayManager.jmMinimapActive()) {
             return;

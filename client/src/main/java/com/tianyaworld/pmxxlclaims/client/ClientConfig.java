@@ -16,6 +16,7 @@ public final class ClientConfig {
     private static int minimapSize = 128;
     private static int minimapMargin = 6;
     private static int claimAlpha = 0x66;
+    private static float xaeroScale = 1.0f;
 
     private ClientConfig() {
     }
@@ -42,6 +43,10 @@ public final class ClientConfig {
 
     public static int claimAlpha() {
         return claimAlpha;
+    }
+
+    public static float xaeroScale() {
+        return xaeroScale;
     }
 
     private static Path file() {
@@ -71,6 +76,9 @@ public final class ClientConfig {
             if (root.has("claimAlpha")) {
                 claimAlpha = Math.max(0, Math.min(255, root.get("claimAlpha").getAsInt()));
             }
+            if (root.has("xaeroScale")) {
+                xaeroScale = Math.max(0.05f, Math.min(16.0f, root.get("xaeroScale").getAsFloat()));
+            }
         } catch (Exception ignored) {
         }
     }
@@ -82,6 +90,7 @@ public final class ClientConfig {
         root.addProperty("minimapSize", minimapSize);
         root.addProperty("minimapMargin", minimapMargin);
         root.addProperty("claimAlpha", claimAlpha);
+        root.addProperty("xaeroScale", xaeroScale);
         try {
             Files.createDirectories(file().getParent());
             Files.writeString(file(), new GsonBuilder().setPrettyPrinting().create().toJson(root), StandardCharsets.UTF_8);

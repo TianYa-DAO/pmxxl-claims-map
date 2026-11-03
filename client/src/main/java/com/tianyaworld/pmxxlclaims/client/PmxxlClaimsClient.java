@@ -1,6 +1,7 @@
 package com.tianyaworld.pmxxlclaims.client;
 
 import com.tianyaworld.pmxxlclaims.client.jm.ClaimsOverlayManager;
+import com.tianyaworld.pmxxlclaims.client.xaero.XaeroClaimsBridge;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -43,6 +44,9 @@ public final class PmxxlClaimsClient implements ClientModInitializer {
                 ClientConfig.save();
             }
             ClaimsOverlayManager.tick(client);
+            if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("xaerominimap")) {
+                XaeroClaimsBridge.tick(client);
+            }
         });
         HudElementRegistry.attachElementAfter(VanillaHudElements.MISC_OVERLAYS, Identifier.of("pmxxlclaims", "minimap"), new MinimapRenderer());
         LOGGER.info("PmxxlClaims client initialized (server push only)");

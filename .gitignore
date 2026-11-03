@@ -16,3 +16,5 @@ loom-cache/
 *.log
 *.tmp
 .DS_Store
+# local compile-only deps (not redistributable)
+client/libs/

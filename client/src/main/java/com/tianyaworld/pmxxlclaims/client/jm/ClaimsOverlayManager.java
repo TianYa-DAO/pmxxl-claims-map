@@ -55,6 +55,9 @@ public final class ClaimsOverlayManager {
         if (!net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("journeymap")) {
             return;
         }
+        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("xaerominimap")) {
+            return;
+        }
         IClientAPI api = ClaimsJourneyMapPlugin.api();
         if (api == null || client.player == null || client.world == null) {
             return;
