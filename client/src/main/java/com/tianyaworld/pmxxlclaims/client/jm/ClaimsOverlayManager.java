@@ -31,6 +31,7 @@ public final class ClaimsOverlayManager {
 
     private static volatile long lastRebuildAt;
     private static volatile boolean dirty = true;
+    private static volatile boolean xaeroCleared;
     private static volatile boolean jmMinimapActive = true;
     private static String lastSignature = "";
 
@@ -55,7 +56,18 @@ public final class ClaimsOverlayManager {
         if (!net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("journeymap")) {
             return;
         }
-        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("xaerominimap")) {
+        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("xaerominimap")
+                && com.tianyaworld.pmxxlclaims.client.xaero.XaeroClaimsBridge.isRendering()) {
+            if (!xaeroCleared) {
+                xaeroCleared = true;
+                IClientAPI jmApi = ClaimsJourneyMapPlugin.api();
+                if (jmApi != null) {
+                    try {
+                        jmApi.removeAll(MOD_ID, DisplayType.Polygon);
+                    } catch (RuntimeException ignored) {
+                    }
+                }
+            }
             return;
         }
         IClientAPI api = ClaimsJourneyMapPlugin.api();

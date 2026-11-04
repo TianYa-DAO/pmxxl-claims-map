@@ -6,10 +6,13 @@ import com.tianyaworld.pmxxlclaims.client.ClientConfig;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
+import org.joml.Matrix4f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xaero.common.HudMod;
+import xaero.hud.minimap.BuiltInHudModules;
 import xaero.hud.minimap.Minimap;
 import xaero.hud.minimap.element.render.MinimapElementGraphics;
 import xaero.hud.minimap.element.render.MinimapElementReader;
@@ -18,6 +21,7 @@ import xaero.hud.minimap.element.render.MinimapElementRenderLocation;
 import xaero.hud.minimap.element.render.MinimapElementRenderProvider;
 import xaero.hud.minimap.element.render.MinimapElementRenderer;
 import xaero.hud.minimap.element.render.over.MinimapElementOverMapRendererHandler;
+import xaero.hud.minimap.module.MinimapSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,17 +30,23 @@ public final class XaeroClaimsBridge {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("pmxxlclaims");
     private static final long RETRY_MS = 3000L;
+    private static final int MAX_ATTEMPTS = 40;
+    private static final long RENDER_FRESH_MS = 1000L;
+    private static final double MIN_SCALE = 0.01;
+    private static final double MAX_SCALE = 64.0;
 
     private static volatile boolean registered;
     private static volatile boolean failed;
     private static volatile long lastAttempt;
+    private static volatile long lastRenderedAt;
+    private static volatile int attempts;
     private static volatile double lastLoggedScale = -1.0;
 
     private XaeroClaimsBridge() {
     }
 
-    public static boolean isActive() {
-        return registered;
+    public static boolean isRendering() {
+        return registered && !failed && System.currentTimeMillis() - lastRenderedAt < RENDER_FRESH_MS;
     }
 
     public static void tick(MinecraftClient client) {
@@ -51,6 +61,12 @@ public final class XaeroClaimsBridge {
             return;
         }
         lastAttempt = now;
+        attempts++;
+        if (attempts > MAX_ATTEMPTS) {
+            failed = true;
+            LOGGER.warn("xaero claims overlay registration gave up after " + attempts + " attempts");
+            return;
+        }
         try {
             HudMod mod = HudMod.INSTANCE;
             if (mod == null) {
@@ -69,8 +85,40 @@ public final class XaeroClaimsBridge {
             LOGGER.info("xaero claims overlay registered");
         } catch (Throwable throwable) {
             failed = true;
-            LOGGER.warn("failed to register xaero claims overlay: " + throwable);
+            LOGGER.warn("failed to register xaero claims overlay", throwable);
         }
+    }
+
+    static double unitsPerBlock() {
+        double zoom = 1.0;
+        double uiScale = 1.0;
+        try {
+            MinimapSession session = BuiltInHudModules.MINIMAP.getCurrentSession();
+            if (session != null && session.getProcessor() != null) {
+                zoom = session.getProcessor().getMinimapZoom();
+            }
+            HudMod mod = HudMod.INSTANCE;
+            if (mod != null && mod.getSettings() != null) {
+                uiScale = mod.getSettings().getMinimapScale();
+            }
+        } catch (Throwable ignored) {
+        }
+        double units = zoom * uiScale / 2.0;
+        if (!(units > MIN_SCALE) || units > MAX_SCALE) {
+            units = 1.0;
+        }
+        return units * ClientConfig.xaeroScale();
+    }
+
+    static double renderAngleDegrees() {
+        try {
+            MinimapSession session = BuiltInHudModules.MINIMAP.getCurrentSession();
+            if (session != null && session.getProcessor() != null && session.getProcessor().getRenderer() != null) {
+                return session.getProcessor().getRenderer().getRenderAngle(false);
+            }
+        } catch (Throwable ignored) {
+        }
+        return 0.0;
     }
 
     public record ClaimBox(int minX, int minZ, int maxX, int maxZ, int color, boolean subzone) {
@@ -78,26 +126,31 @@ public final class XaeroClaimsBridge {
 
     private static final class ClaimProvider extends MinimapElementRenderProvider<ClaimBox, Object> {
 
-        private final List<ClaimBox> boxes = new ArrayList<>();
+        private List<ClaimBox> boxes = List.of();
         private int index;
+        private int cachedVersion = -1;
+        private String cachedWorld = "";
 
         @Override
         public void begin(MinimapElementRenderLocation location, Object context) {
-            boxes.clear();
             index = 0;
             if (location != MinimapElementRenderLocation.OVER_MINIMAP) {
+                boxes = List.of();
                 return;
             }
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (client.player == null || client.world == null) {
+            ClientWorld world = MinecraftClient.getInstance().world;
+            if (world == null) {
+                boxes = List.of();
                 return;
             }
-            ClientWorld world = client.world;
             String worldId = world.getRegistryKey().getValue().toString();
-            List<ClaimCacheIndex.Entry> entries = ClaimCacheIndex.collect(worldId, client.player.getBlockX(), client.player.getBlockZ());
-            for (ClaimCacheIndex.Entry entry : entries) {
-                boxes.add(new ClaimBox(entry.minX, entry.minZ, entry.maxX, entry.maxZ, entry.color, entry.subzone));
+            int version = ClaimCache.contentVersion();
+            if (version == cachedVersion && worldId.equals(cachedWorld)) {
+                return;
             }
+            cachedVersion = version;
+            cachedWorld = worldId;
+            boxes = ClaimCacheIndex.collect(worldId);
         }
 
         @Override
@@ -112,7 +165,6 @@ public final class XaeroClaimsBridge {
 
         @Override
         public void end(MinimapElementRenderLocation location, Object context) {
-            boxes.clear();
             index = 0;
         }
     }
@@ -222,33 +274,46 @@ public final class XaeroClaimsBridge {
         }
 
         @Override
-        public boolean renderElement(ClaimBox box, boolean first, boolean second, double x, float y, double z,
+        public int getOrder() {
+            return 800;
+        }
+
+        @Override
+        public boolean renderElement(ClaimBox box, boolean clipped, boolean second, double x, float y, double z,
                                      double depth, MinimapElementRenderInfo info, MinimapElementGraphics graphics,
                                      VertexConsumerProvider.Immediate buffers) {
-            double coordinateScale = info.backgroundCoordinateScale;
-            if (!(coordinateScale > 0.01) || coordinateScale > 64.0) {
-                coordinateScale = 1.0;
+            if (clipped) {
+                return false;
             }
-            double scale = coordinateScale * ClientConfig.xaeroScale();
-            int width = Math.max(1, (int) Math.round((box.maxX - box.minX + 1) * scale));
-            int height = Math.max(1, (int) Math.round((box.maxZ - box.minZ + 1) * scale));
-            if (scale != lastLoggedScale) {
-                lastLoggedScale = scale;
-                LOGGER.info("xaero claim render scale=" + scale + " (coordinate=" + coordinateScale + ", config=" + ClientConfig.xaeroScale() + ")");
+            double units = unitsPerBlock();
+            if (units != lastLoggedScale) {
+                lastLoggedScale = units;
+                LOGGER.info("xaero claim units-per-block=" + units);
             }
+            int width = Math.max(1, (int) Math.round((box.maxX - box.minX + 1) * units));
+            int height = Math.max(1, (int) Math.round((box.maxZ - box.minZ + 1) * units));
             int alpha = ClientConfig.claimAlpha();
             int fill = (alpha << 24) | (box.color & 0xFFFFFF);
             int border = 0xE0FFFFFF;
-            int left = -width / 2;
-            int top = -height / 2;
-            int right = left + width;
-            int bottom = top + height;
-            graphics.fill(left, top, right, bottom, fill);
-            int thickness = box.subzone ? 1 : 2;
-            graphics.fill(left, top, right, top + thickness, border);
-            graphics.fill(left, bottom - thickness, right, bottom, border);
-            graphics.fill(left, top, left + thickness, bottom, border);
-            graphics.fill(right - thickness, top, right, bottom, border);
+            int halfW = width / 2;
+            int halfH = height / 2;
+            MatrixStack pose = graphics.pose();
+            pose.push();
+            try {
+                double angle = renderAngleDegrees();
+                if (angle != 0.0) {
+                    pose.multiplyPositionMatrix(new Matrix4f().rotationZ((float) Math.toRadians(angle)));
+                }
+                graphics.fill(-halfW, -halfH, width - halfW, height - halfH, fill);
+                int thickness = box.subzone ? 1 : 2;
+                graphics.fill(-halfW, -halfH, width - halfW, -halfH + thickness, border);
+                graphics.fill(-halfW, height - halfH - thickness, width - halfW, height - halfH, border);
+                graphics.fill(-halfW, -halfH, -halfW + thickness, height - halfH, border);
+                graphics.fill(width - halfW - thickness, -halfH, width - halfW, height - halfH, border);
+            } finally {
+                pose.pop();
+            }
+            lastRenderedAt = System.currentTimeMillis();
             return true;
         }
 
@@ -273,29 +338,18 @@ public final class XaeroClaimsBridge {
         record Entry(int minX, int minZ, int maxX, int maxZ, int color, boolean subzone) {
         }
 
-        static List<Entry> collect(String worldId, int playerX, int playerZ) {
-            List<Entry> entries = new ArrayList<>();
+        static List<ClaimBox> collect(String worldId) {
+            List<ClaimBox> entries = new ArrayList<>();
             for (ClaimCodec.Claim claim : ClaimCache.claimsFor(worldId)) {
                 for (ClaimCodec.Box box : claim.boxes()) {
-                    entries.add(new Entry(box.minX(), box.minZ(), box.maxX(), box.maxZ(),
+                    entries.add(new ClaimBox(box.minX(), box.minZ(), box.maxX(), box.maxZ(),
                             claim.color(), (claim.flags() & 1) != 0));
                 }
             }
-            entries.sort((a, b) -> {
-                long da = dist2(a, playerX, playerZ);
-                long db = dist2(b, playerX, playerZ);
-                return Long.compare(da, db);
-            });
             if (entries.size() > 512) {
                 return new ArrayList<>(entries.subList(0, 512));
             }
             return entries;
-        }
-
-        private static long dist2(Entry entry, int playerX, int playerZ) {
-            long dx = (entry.minX + entry.maxX) / 2L - playerX;
-            long dz = (entry.minZ + entry.maxZ) / 2L - playerZ;
-            return dx * dx + dz * dz;
         }
     }
 }
