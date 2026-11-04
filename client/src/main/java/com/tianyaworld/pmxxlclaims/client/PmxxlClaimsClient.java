@@ -43,9 +43,15 @@ public final class PmxxlClaimsClient implements ClientModInitializer {
                 ClientConfig.minimapVisible(MinimapRenderer.isVisible());
                 ClientConfig.save();
             }
-            ClaimsOverlayManager.tick(client);
-            if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("xaerominimap")) {
-                XaeroClaimsBridge.tick(client);
+            try {
+                if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("journeymap")) {
+                    ClaimsOverlayManager.tick(client);
+                }
+                if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("xaerominimap")) {
+                    XaeroClaimsBridge.tick(client);
+                }
+            } catch (Throwable throwable) {
+                LOGGER.warn("claims backend tick failed", throwable);
             }
         });
         HudElementRegistry.attachElementAfter(VanillaHudElements.MISC_OVERLAYS, Identifier.of("pmxxlclaims", "minimap"), new MinimapRenderer());
