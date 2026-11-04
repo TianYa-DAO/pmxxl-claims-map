@@ -80,6 +80,13 @@ assume-client-unregistered: false
 
 All Rights Reserved。
 
+## 编译 Xaero 后端（需要本地不放仓库的 jar）
+
+1. Xaero's Minimap 为 All Rights Reserved，仓库不分发其 jar。构建前把两个文件放进 `client/libs/`（该目录已 gitignore）：
+   - `xaerominimap-fabric-1.21.11-26.6.2.jar`：Modrinth 上 Xaero's Minimap 的 Fabric 1.21.11 版本（26.6.2）。
+   - `xaerolib-fabric-1.21.11-1.8.5.jar`：从上面那个 jar 内的 `META-INF/jars/` 解出来。
+2. 缺文件时 Gradle 会直接报错并提示缺哪个；只编译服务端插件不受影响。
+
 ## 小地图后端
 
 1. 装了 Xaero's Minimap：模组通过它的「元素渲染器」扩展点（`HudMod.INSTANCE.getMinimap().getOverMapRendererHandler().add(...)`）把领地画在 Xaero 小地图上，不改其代码、不打包其 jar；构建需要把 Xaero 的 jar 放进 `client/libs/`（该目录已 gitignore，许可证不允许分发）。

@@ -21,7 +21,10 @@ import xaero.hud.minimap.element.render.MinimapElementRenderLocation;
 import xaero.hud.minimap.element.render.MinimapElementRenderProvider;
 import xaero.hud.minimap.element.render.MinimapElementRenderer;
 import xaero.hud.minimap.element.render.over.MinimapElementOverMapRendererHandler;
+import xaero.hud.minimap.common.config.option.MinimapProfiledConfigOptions;
+import xaero.hud.minimap.config.util.MinimapConfigClientUtils;
 import xaero.hud.minimap.module.MinimapSession;
+import xaero.lib.client.config.ClientConfigManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +44,7 @@ public final class XaeroClaimsBridge {
     private static volatile long lastRenderedAt;
     private static volatile int attempts;
     private static volatile double lastLoggedScale = -1.0;
+    private static volatile long lastLogAt;
 
     private XaeroClaimsBridge() {
     }
@@ -110,11 +114,28 @@ public final class XaeroClaimsBridge {
         return units * ClientConfig.xaeroScale();
     }
 
+    static boolean northLocked() {
+        try {
+            HudMod mod = HudMod.INSTANCE;
+            MinimapSession session = BuiltInHudModules.MINIMAP.getCurrentSession();
+            if (mod == null || session == null || session.getProcessor() == null) {
+                return false;
+            }
+            ClientConfigManager configs = mod.getHudConfigs().getClientConfigManager();
+            Object shapeValue = configs.getEffective(MinimapProfiledConfigOptions.SHAPE);
+            int shape = shapeValue instanceof Integer ? (Integer) shapeValue : 1;
+            int halfSize = session.getProcessor().getMinimapSize() / 2;
+            return MinimapConfigClientUtils.getEffectiveNorthLocked(halfSize, shape);
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
     static double renderAngleDegrees() {
         try {
             MinimapSession session = BuiltInHudModules.MINIMAP.getCurrentSession();
             if (session != null && session.getProcessor() != null && session.getProcessor().getRenderer() != null) {
-                return session.getProcessor().getRenderer().getRenderAngle(false);
+                return session.getProcessor().getRenderer().getRenderAngle(northLocked()) - 90.0;
             }
         } catch (Throwable ignored) {
         }
@@ -138,6 +159,7 @@ public final class XaeroClaimsBridge {
                 boxes = List.of();
                 return;
             }
+            lastRenderedAt = System.currentTimeMillis();
             ClientWorld world = MinecraftClient.getInstance().world;
             if (world == null) {
                 boxes = List.of();
@@ -274,20 +296,17 @@ public final class XaeroClaimsBridge {
         }
 
         @Override
-        public int getOrder() {
-            return 800;
-        }
-
-        @Override
-        public boolean renderElement(ClaimBox box, boolean clipped, boolean second, double x, float y, double z,
+        public boolean renderElement(ClaimBox box, boolean first, boolean clipped, double x, float y, double z,
                                      double depth, MinimapElementRenderInfo info, MinimapElementGraphics graphics,
                                      VertexConsumerProvider.Immediate buffers) {
             if (clipped) {
                 return false;
             }
             double units = unitsPerBlock();
-            if (units != lastLoggedScale) {
+            long now = System.currentTimeMillis();
+            if ((lastLoggedScale < 0 || Math.abs(units - lastLoggedScale) > lastLoggedScale * 0.05) && now - lastLogAt > 5000L) {
                 lastLoggedScale = units;
+                lastLogAt = now;
                 LOGGER.info("xaero claim units-per-block=" + units);
             }
             int width = Math.max(1, (int) Math.round((box.maxX - box.minX + 1) * units));
@@ -305,11 +324,13 @@ public final class XaeroClaimsBridge {
                     pose.multiplyPositionMatrix(new Matrix4f().rotationZ((float) Math.toRadians(angle)));
                 }
                 graphics.fill(-halfW, -halfH, width - halfW, height - halfH, fill);
-                int thickness = box.subzone ? 1 : 2;
-                graphics.fill(-halfW, -halfH, width - halfW, -halfH + thickness, border);
-                graphics.fill(-halfW, height - halfH - thickness, width - halfW, height - halfH, border);
-                graphics.fill(-halfW, -halfH, -halfW + thickness, height - halfH, border);
-                graphics.fill(width - halfW - thickness, -halfH, width - halfW, height - halfH, border);
+                if (width >= 4 && height >= 4) {
+                    int thickness = box.subzone ? 1 : 2;
+                    graphics.fill(-halfW, -halfH, width - halfW, -halfH + thickness, border);
+                    graphics.fill(-halfW, height - halfH - thickness, width - halfW, height - halfH, border);
+                    graphics.fill(-halfW, -halfH, -halfW + thickness, height - halfH, border);
+                    graphics.fill(width - halfW - thickness, -halfH, width - halfW, height - halfH, border);
+                }
             } finally {
                 pose.pop();
             }
@@ -346,8 +367,8 @@ public final class XaeroClaimsBridge {
                             claim.color(), (claim.flags() & 1) != 0));
                 }
             }
-            if (entries.size() > 512) {
-                return new ArrayList<>(entries.subList(0, 512));
+            if (entries.size() > 256) {
+                return new ArrayList<>(entries.subList(0, 256));
             }
             return entries;
         }

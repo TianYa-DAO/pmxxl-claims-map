@@ -70,6 +70,9 @@ public final class ClaimsOverlayManager {
             }
             return;
         }
+        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("xaerominimap")) {
+            xaeroCleared = false;
+        }
         IClientAPI api = ClaimsJourneyMapPlugin.api();
         if (api == null || client.player == null || client.world == null) {
             return;
