@@ -80,6 +80,13 @@ assume-client-unregistered: false
 
 All Rights Reserved。
 
+## 小地图后端
+
+1. 装了 Xaero's Minimap：模组通过它的「元素渲染器」扩展点（`HudMod.INSTANCE.getMinimap().getOverMapRendererHandler().add(...)`）把领地画在 Xaero 小地图上，不改其代码、不打包其 jar；构建需要把 Xaero 的 jar 放进 `client/libs/`（该目录已 gitignore，许可证不允许分发）。
+2. 装了 JourneyMap：走 JourneyMap 官方 API（见下节）。
+3. 都没装：用模组自带的简易 HUD。
+4. 三个后端互斥：Xaero > JourneyMap > 自带 HUD。
+
 ## JourneyMap 集成（推荐）
 
 1. 玩家安装 JourneyMap 1.21.11-6.0.0+（Fabric）后，本模组不再自己画小地图，而是作为 JourneyMap 插件，把领地范围画在 JourneyMap 的小地图与全屏地图上（API v2 的 PolygonOverlay）。

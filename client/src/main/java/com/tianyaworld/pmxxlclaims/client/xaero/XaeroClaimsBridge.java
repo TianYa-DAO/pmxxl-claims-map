@@ -30,6 +30,7 @@ public final class XaeroClaimsBridge {
     private static volatile boolean registered;
     private static volatile boolean failed;
     private static volatile long lastAttempt;
+    private static volatile double lastLoggedScale = -1.0;
 
     private XaeroClaimsBridge() {
     }
@@ -224,9 +225,17 @@ public final class XaeroClaimsBridge {
         public boolean renderElement(ClaimBox box, boolean first, boolean second, double x, float y, double z,
                                      double depth, MinimapElementRenderInfo info, MinimapElementGraphics graphics,
                                      VertexConsumerProvider.Immediate buffers) {
-            double scale = ClientConfig.xaeroScale();
+            double coordinateScale = info.backgroundCoordinateScale;
+            if (!(coordinateScale > 0.01) || coordinateScale > 64.0) {
+                coordinateScale = 1.0;
+            }
+            double scale = coordinateScale * ClientConfig.xaeroScale();
             int width = Math.max(1, (int) Math.round((box.maxX - box.minX + 1) * scale));
             int height = Math.max(1, (int) Math.round((box.maxZ - box.minZ + 1) * scale));
+            if (scale != lastLoggedScale) {
+                lastLoggedScale = scale;
+                LOGGER.info("xaero claim render scale=" + scale + " (coordinate=" + coordinateScale + ", config=" + ClientConfig.xaeroScale() + ")");
+            }
             int alpha = ClientConfig.claimAlpha();
             int fill = (alpha << 24) | (box.color & 0xFFFFFF);
             int border = 0xE0FFFFFF;

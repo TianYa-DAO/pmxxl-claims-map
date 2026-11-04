@@ -12,7 +12,8 @@
     "journeymap": ["com.tianyaworld.pmxxlclaims.client.jm.ClaimsJourneyMapPlugin"]
   },
   "suggests": {
-    "journeymap": ">=1.21.11-6.0.0"
+    "journeymap": ">=1.21.11-6.0.0",
+    "xaerominimap": ">=1.21.11-26.6.0"
   },
   "depends": {
     "fabricloader": ">=0.16.0",
