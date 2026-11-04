@@ -54,7 +54,7 @@ public final class XaeroClaimsBridge {
     }
 
     public static void tick(MinecraftClient client) {
-        if (registered || failed) {
+        if (registered || failed || !ClientConfig.enabled()) {
             return;
         }
         if (!FabricLoader.getInstance().isModLoaded("xaerominimap")) {
@@ -299,7 +299,7 @@ public final class XaeroClaimsBridge {
         public boolean renderElement(ClaimBox box, boolean first, boolean clipped, double x, float y, double z,
                                      double depth, MinimapElementRenderInfo info, MinimapElementGraphics graphics,
                                      VertexConsumerProvider.Immediate buffers) {
-            if (clipped) {
+            if (clipped || !ClientConfig.enabled()) {
                 return false;
             }
             double units = unitsPerBlock();

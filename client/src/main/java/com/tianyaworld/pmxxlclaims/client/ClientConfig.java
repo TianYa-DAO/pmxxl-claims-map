@@ -11,34 +11,15 @@ import java.nio.file.Path;
 
 public final class ClientConfig {
 
-    private static boolean showCount = true;
-    private static boolean minimapVisible = true;
-    private static int minimapSize = 128;
-    private static int minimapMargin = 6;
+    private static boolean enabled = true;
     private static int claimAlpha = 0x66;
     private static float xaeroScale = 1.0f;
 
     private ClientConfig() {
     }
 
-    public static boolean showCount() {
-        return showCount;
-    }
-
-    public static boolean minimapVisible() {
-        return minimapVisible;
-    }
-
-    public static void minimapVisible(boolean value) {
-        minimapVisible = value;
-    }
-
-    public static int minimapSize() {
-        return minimapSize;
-    }
-
-    public static int minimapMargin() {
-        return minimapMargin;
+    public static boolean enabled() {
+        return enabled;
     }
 
     public static int claimAlpha() {
@@ -61,17 +42,8 @@ public final class ClientConfig {
         }
         try {
             JsonObject root = JsonParser.parseString(Files.readString(path, StandardCharsets.UTF_8)).getAsJsonObject();
-            if (root.has("showCount")) {
-                showCount = root.get("showCount").getAsBoolean();
-            }
-            if (root.has("minimapVisible")) {
-                minimapVisible = root.get("minimapVisible").getAsBoolean();
-            }
-            if (root.has("minimapSize")) {
-                minimapSize = Math.max(64, Math.min(256, root.get("minimapSize").getAsInt()));
-            }
-            if (root.has("minimapMargin")) {
-                minimapMargin = Math.max(0, Math.min(64, root.get("minimapMargin").getAsInt()));
+            if (root.has("enabled")) {
+                enabled = root.get("enabled").getAsBoolean();
             }
             if (root.has("claimAlpha")) {
                 claimAlpha = Math.max(0, Math.min(255, root.get("claimAlpha").getAsInt()));
@@ -85,10 +57,7 @@ public final class ClientConfig {
 
     public static void save() {
         JsonObject root = new JsonObject();
-        root.addProperty("showCount", showCount);
-        root.addProperty("minimapVisible", minimapVisible);
-        root.addProperty("minimapSize", minimapSize);
-        root.addProperty("minimapMargin", minimapMargin);
+        root.addProperty("enabled", enabled);
         root.addProperty("claimAlpha", claimAlpha);
         root.addProperty("xaeroScale", xaeroScale);
         try {

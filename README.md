@@ -90,8 +90,8 @@ All Rights Reserved。
 ## 小地图后端
 
 1. 装了 Xaero's Minimap（1.21.11，Fabric，26.6.x）：模组通过它的「元素渲染器」扩展点（`HudMod.INSTANCE.getMinimap().getOverMapRendererHandler().add(...)`）把领地画在 Xaero 小地图上，不改其代码、不打包其 jar；构建需要把 Xaero 的 jar 放进 `client/libs/`（该目录已 gitignore，许可证不允许分发）。
-2. 没装 Xaero：用模组自带的简易 HUD 小地图。
-3. 只有这两个后端，不再支持 JourneyMap。
+2. 没装 Xaero：本模组不渲染任何东西（已移除自带的简易 HUD）。
+3. 不再支持 JourneyMap。
 
 ## 通信协议 PMC3
 
