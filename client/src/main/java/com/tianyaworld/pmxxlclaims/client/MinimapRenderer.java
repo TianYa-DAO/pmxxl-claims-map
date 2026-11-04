@@ -43,10 +43,6 @@ public final class MinimapRenderer implements HudElement {
                 && com.tianyaworld.pmxxlclaims.client.xaero.XaeroClaimsBridge.isRendering()) {
             return;
         }
-        if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("journeymap")
-                && com.tianyaworld.pmxxlclaims.client.jm.ClaimsOverlayManager.jmMinimapActive()) {
-            return;
-        }
         if (!visible || client.player == null || client.world == null || client.options.hudHidden) {
             return;
         }

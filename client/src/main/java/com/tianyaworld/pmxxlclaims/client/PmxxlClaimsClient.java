@@ -1,6 +1,5 @@
 package com.tianyaworld.pmxxlclaims.client;
 
-import com.tianyaworld.pmxxlclaims.client.jm.ClaimsOverlayManager;
 import com.tianyaworld.pmxxlclaims.client.xaero.XaeroClaimsBridge;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -44,9 +43,6 @@ public final class PmxxlClaimsClient implements ClientModInitializer {
                 ClientConfig.save();
             }
             try {
-                if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("journeymap")) {
-                    ClaimsOverlayManager.tick(client);
-                }
                 if (net.fabricmc.loader.api.FabricLoader.getInstance().isModLoaded("xaerominimap")) {
                     XaeroClaimsBridge.tick(client);
                 }

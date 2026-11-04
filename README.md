@@ -89,6 +89,43 @@ All Rights Reserved。
 
 ## 小地图后端
 
+1. 装了 Xaero's Minimap（1.21.11，Fabric，26.6.x）：模组通过它的「元素渲染器」扩展点（`HudMod.INSTANCE.getMinimap().getOverMapRendererHandler().add(...)`）把领地画在 Xaero 小地图上，不改其代码、不打包其 jar；构建需要把 Xaero 的 jar 放进 `client/libs/`（该目录已 gitignore，许可证不允许分发）。
+2. 没装 Xaero：用模组自带的简易 HUD 小地图。
+3. 只有这两个后端，不再支持 JourneyMap。
+
+## 通信协议 PMC3
+
+1. 帧：magic `PMC3` + flags（bit0 = Deflate）+ body。
+2. body：世界字符串（≤512 字节）+ 领地数（varint）+ 每条领地（名字、owner、color、flags、区域数、每区域 minX/minZ/maxX/maxZ）。
+3. 触发：跨区块立即、每 3 秒巡检、领地变更合并刷新；内容不变时仅 10 秒心跳发送。
+4. 体积：空包 26 字节，500 条约 8 KB，超过 1 MiB 自动裁剪。
+
+## 验证状态
+
+1. 两端编译通过；PMC3 编解码往返与畸形包拒绝测试通过。
+2. 已在真实 Purpur 1.21.11 + Residence 5.1.6.2 + CMILib 环境验证：插件加载、命令执行、真实查询、客户端频道注册后收到可解码的 PMC3 帧、心跳重复。
+3. 尚需游戏内实测：真实领地数据的渲染对齐、Fabric 客户端加载表现。
+
+## 已知限制
+
+1. 客户端只显示服务端推送范围内的领地（默认半径 16 区块，最多 32）。
+2. 推送半径上限 32 区块。
+3. 客户端底图是区块平均色，无地形细节与缩放/旋转。
+4. 服务端未安装插件时客户端不显示任何领地。
+
+## License
+
+All Rights Reserved。
+
+## 编译 Xaero 后端（需要本地不放仓库的 jar）
+
+1. Xaero's Minimap 为 All Rights Reserved，仓库不分发其 jar。构建前把两个文件放进 `client/libs/`（该目录已 gitignore）：
+   - `xaerominimap-fabric-1.21.11-26.6.2.jar`：Modrinth 上 Xaero's Minimap 的 Fabric 1.21.11 版本（26.6.2）。
+   - `xaerolib-fabric-1.21.11-1.8.5.jar`：从上面那个 jar 内的 `META-INF/jars/` 解出来。
+2. 缺文件时 Gradle 会直接报错并提示缺哪个；只编译服务端插件不受影响。
+
+## 小地图后端
+
 1. 装了 Xaero's Minimap：模组通过它的「元素渲染器」扩展点（`HudMod.INSTANCE.getMinimap().getOverMapRendererHandler().add(...)`）把领地画在 Xaero 小地图上，不改其代码、不打包其 jar；构建需要把 Xaero 的 jar 放进 `client/libs/`（该目录已 gitignore，许可证不允许分发）。
 2. 装了 JourneyMap：走 JourneyMap 官方 API（见下节）。
 3. 都没装：用模组自带的简易 HUD。
