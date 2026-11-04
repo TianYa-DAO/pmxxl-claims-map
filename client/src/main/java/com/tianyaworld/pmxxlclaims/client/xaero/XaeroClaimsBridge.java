@@ -5,7 +5,9 @@ import com.tianyaworld.pmxxlclaims.client.ClaimCodec;
 import com.tianyaworld.pmxxlclaims.client.ClientConfig;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.render.VertexConsumerProvider;
+import net.minecraft.client.util.Window;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.client.world.ClientWorld;
 import org.joml.Matrix4f;
@@ -289,6 +291,40 @@ public final class XaeroClaimsBridge {
         }
     }
 
+    private static boolean scissorActive;
+
+    private static boolean applyMinimapScissor() {
+        try {
+            MinecraftClient client = MinecraftClient.getInstance();
+            MinimapSession session = BuiltInHudModules.MINIMAP.getCurrentSession();
+            if (client == null || session == null || session.getProcessor() == null) {
+                return false;
+            }
+            Window window = client.getWindow();
+            double scale = window.getScaleFactor();
+            if (!(scale > 0.0)) {
+                return false;
+            }
+            int screenWidth = window.getScaledWidth();
+            int screenHeight = window.getScaledHeight();
+            int width = session.getWidth(scale);
+            int height = session.getHeight(scale);
+            int x = session.getEffectiveX(screenWidth, scale);
+            int y = session.getEffectiveY(screenHeight, scale);
+            if (width <= 0 || height <= 0) {
+                return false;
+            }
+            int pixelX = (int) Math.round(x * scale);
+            int pixelY = (int) Math.round((screenHeight - y - height) * scale);
+            int pixelWidth = (int) Math.round(width * scale);
+            int pixelHeight = (int) Math.round(height * scale);
+            RenderSystem.enableScissorForRenderTypeDraws(pixelX, pixelY, pixelWidth, pixelHeight);
+            return true;
+        } catch (Throwable throwable) {
+            return false;
+        }
+    }
+
     private static final class ClaimElementRenderer extends MinimapElementRenderer<ClaimBox, Object> {
 
         ClaimElementRenderer() {
@@ -341,11 +377,20 @@ public final class XaeroClaimsBridge {
         @Override
         public void preRender(MinimapElementRenderInfo info, VertexConsumerProvider.Immediate buffers,
                               xaero.common.graphics.renderer.multitexture.MultiTextureRenderTypeRendererProvider providers) {
+            scissorActive = applyMinimapScissor();
         }
 
         @Override
         public void postRender(MinimapElementRenderInfo info, VertexConsumerProvider.Immediate buffers,
                                xaero.common.graphics.renderer.multitexture.MultiTextureRenderTypeRendererProvider providers) {
+            if (scissorActive) {
+                try {
+                    buffers.draw();
+                } catch (Throwable ignored) {
+                }
+                scissorActive = false;
+                RenderSystem.disableScissorForRenderTypeDraws();
+            }
         }
 
         @Override
