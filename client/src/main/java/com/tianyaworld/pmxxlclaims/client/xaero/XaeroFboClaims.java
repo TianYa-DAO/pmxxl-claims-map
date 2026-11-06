@@ -61,19 +61,8 @@ public final class XaeroFboClaims {
             LOGGER.info("xaero fbo claims draw: dimensionScale=" + dimensionScale + " camera=" + xFloored + "," + zFloored);
         }
         int alpha = ClientConfig.claimAlpha();
-        double viewBlocksX = Math.max(1, maxViewX - minViewX);
-        double viewBlocksZ = Math.max(1, maxViewZ - minViewZ);
-        MinecraftClient mc = MinecraftClient.getInstance();
-        double screenWidth = 128.0;
-        try {
-            var session = xaero.hud.minimap.BuiltInHudModules.MINIMAP.getCurrentSession();
-            if (session != null) {
-                screenWidth = session.getWidth(mc.getWindow().getScaleFactor());
-            }
-        } catch (Throwable ignored) {
-        }
-        double pixelsPerBlock = screenWidth / viewBlocksX;
-        if (!(pixelsPerBlock > 0.0001)) {
+        double pixelsPerBlock = zoom * uiScale / 2.0;
+        if (!(pixelsPerBlock > 0.0005)) {
             pixelsPerBlock = 1.0;
         }
         float mainThickness = (float) Math.max(0.05, 2.0 / pixelsPerBlock);
