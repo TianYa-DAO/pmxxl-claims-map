@@ -293,6 +293,44 @@ public final class XaeroClaimsBridge {
 
     private static boolean scissorActive;
 
+    private static double visibleBlocks() {
+        try {
+            MinimapSession session = BuiltInHudModules.MINIMAP.getCurrentSession();
+            if (session == null || session.getProcessor() == null) {
+                return 0.0;
+            }
+            double zoom = session.getProcessor().getMinimapZoom();
+            if (!(zoom > 0.0001)) {
+                return 0.0;
+            }
+            return session.getConfiguredWidth() / zoom;
+        } catch (Throwable ignored) {
+            return 0.0;
+        }
+    }
+
+    private static int[] clampToView(ClaimBox box) {
+        double radius = visibleBlocks();
+        if (!(radius > 0.0)) {
+            return new int[]{box.minX, box.minZ, box.maxX, box.maxZ};
+        }
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.player == null) {
+            return new int[]{box.minX, box.minZ, box.maxX, box.maxZ};
+        }
+        double limit = radius * 0.7;
+        int px = client.player.getBlockX();
+        int pz = client.player.getBlockZ();
+        int minX = (int) Math.max(box.minX, Math.ceil(px - limit));
+        int maxX = (int) Math.min(box.maxX, Math.floor(px + limit));
+        int minZ = (int) Math.max(box.minZ, Math.ceil(pz - limit));
+        int maxZ = (int) Math.min(box.maxZ, Math.floor(pz + limit));
+        if (minX > maxX || minZ > maxZ) {
+            return null;
+        }
+        return new int[]{minX, minZ, maxX, maxZ};
+    }
+
     private static boolean applyMinimapScissor() {
         try {
             MinecraftClient client = MinecraftClient.getInstance();
@@ -343,15 +381,23 @@ public final class XaeroClaimsBridge {
             if ((lastLoggedScale < 0 || Math.abs(units - lastLoggedScale) > lastLoggedScale * 0.05) && now - lastLogAt > 5000L) {
                 lastLoggedScale = units;
                 lastLogAt = now;
-                LOGGER.info("xaero claim units-per-block=" + units);
+                LOGGER.info("xaero claim units-per-block=" + units + " visibleRadius=" + visibleBlocks());
             }
-            int width = Math.max(1, (int) Math.round((box.maxX - box.minX + 1) * units));
-            int height = Math.max(1, (int) Math.round((box.maxZ - box.minZ + 1) * units));
+            int[] clamped = clampToView(box);
+            if (clamped == null) {
+                return false;
+            }
+            double centerX = (box.minX + box.maxX + 1) / 2.0;
+            double centerZ = (box.minZ + box.maxZ + 1) / 2.0;
+            int left = (int) Math.round((clamped[0] - centerX) * units);
+            int top = (int) Math.round((clamped[1] - centerZ) * units);
+            int right = (int) Math.round((clamped[2] + 1 - centerX) * units);
+            int bottom = (int) Math.round((clamped[3] + 1 - centerZ) * units);
+            int width = Math.max(1, right - left);
+            int height = Math.max(1, bottom - top);
             int alpha = ClientConfig.claimAlpha();
             int fill = (alpha << 24) | (box.color & 0xFFFFFF);
             int border = 0xE0FFFFFF;
-            int halfW = width / 2;
-            int halfH = height / 2;
             MatrixStack pose = graphics.pose();
             pose.push();
             try {
@@ -359,13 +405,13 @@ public final class XaeroClaimsBridge {
                 if (angle != 0.0) {
                     pose.multiplyPositionMatrix(new Matrix4f().rotationZ((float) Math.toRadians(angle)));
                 }
-                graphics.fill(-halfW, -halfH, width - halfW, height - halfH, fill);
+                graphics.fill(left, top, right, bottom, fill);
                 if (width >= 4 && height >= 4) {
                     int thickness = box.subzone ? 1 : 2;
-                    graphics.fill(-halfW, -halfH, width - halfW, -halfH + thickness, border);
-                    graphics.fill(-halfW, height - halfH - thickness, width - halfW, height - halfH, border);
-                    graphics.fill(-halfW, -halfH, -halfW + thickness, height - halfH, border);
-                    graphics.fill(width - halfW - thickness, -halfH, width - halfW, height - halfH, border);
+                    graphics.fill(left, top, right, top + thickness, border);
+                    graphics.fill(left, bottom - thickness, right, bottom, border);
+                    graphics.fill(left, top, left + thickness, bottom, border);
+                    graphics.fill(right - thickness, top, right, bottom, border);
                 }
             } finally {
                 pose.pop();
