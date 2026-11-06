@@ -377,7 +377,7 @@ public final class XaeroClaimsBridge {
         @Override
         public void preRender(MinimapElementRenderInfo info, VertexConsumerProvider.Immediate buffers,
                               xaero.common.graphics.renderer.multitexture.MultiTextureRenderTypeRendererProvider providers) {
-            scissorActive = applyMinimapScissor();
+            scissorActive = ClientConfig.clipToMinimap() && applyMinimapScissor();
         }
 
         @Override

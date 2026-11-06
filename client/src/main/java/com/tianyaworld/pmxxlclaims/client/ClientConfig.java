@@ -12,10 +12,15 @@ import java.nio.file.Path;
 public final class ClientConfig {
 
     private static boolean enabled = true;
+    private static boolean clipToMinimap = false;
     private static int claimAlpha = 0x66;
     private static float xaeroScale = 1.0f;
 
     private ClientConfig() {
+    }
+
+    public static boolean clipToMinimap() {
+        return clipToMinimap;
     }
 
     public static boolean enabled() {
@@ -42,6 +47,9 @@ public final class ClientConfig {
         }
         try {
             JsonObject root = JsonParser.parseString(Files.readString(path, StandardCharsets.UTF_8)).getAsJsonObject();
+            if (root.has("clipToMinimap")) {
+                clipToMinimap = root.get("clipToMinimap").getAsBoolean();
+            }
             if (root.has("enabled")) {
                 enabled = root.get("enabled").getAsBoolean();
             }
@@ -58,6 +66,7 @@ public final class ClientConfig {
     public static void save() {
         JsonObject root = new JsonObject();
         root.addProperty("enabled", enabled);
+        root.addProperty("clipToMinimap", clipToMinimap);
         root.addProperty("claimAlpha", claimAlpha);
         root.addProperty("xaeroScale", xaeroScale);
         try {

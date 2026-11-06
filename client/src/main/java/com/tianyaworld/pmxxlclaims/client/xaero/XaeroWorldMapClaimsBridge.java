@@ -239,8 +239,10 @@ public final class XaeroWorldMapClaimsBridge {
             if (!ClientConfig.enabled()) {
                 return false;
             }
-            int width = Math.max(1, box.maxX - box.minX + 1);
-            int height = Math.max(1, box.maxZ - box.minZ + 1);
+            double units = info.scale > 0.0001 && info.scale < 1000.0 ? 1.0 / info.scale : 1.0;
+            units *= ClientConfig.xaeroScale();
+            int width = Math.max(1, (int) Math.round((box.maxX - box.minX + 1) * units));
+            int height = Math.max(1, (int) Math.round((box.maxZ - box.minZ + 1) * units));
             int alpha = ClientConfig.claimAlpha();
             int fill = (alpha << 24) | (box.color & 0xFFFFFF);
             int border = 0xE0FFFFFF;
@@ -263,7 +265,7 @@ public final class XaeroWorldMapClaimsBridge {
             long now = System.currentTimeMillis();
             if (now - lastLogAt > 5000L) {
                 lastLogAt = now;
-                LOGGER.info("xaero world map element: scale=" + info.scale + " screenScale=" + info.screenSizeBasedScale + " bgScale=" + info.backgroundCoordinateScale);
+                LOGGER.info("xaero world map element: units=" + units + " scale=" + info.scale + " screenScale=" + info.screenSizeBasedScale + " bgScale=" + info.backgroundCoordinateScale);
             }
             return true;
         }
