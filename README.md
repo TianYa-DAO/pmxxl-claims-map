@@ -89,7 +89,9 @@ All Rights Reserved。
 
 ## 小地图后端
 
-1. 装了 Xaero's Minimap（1.21.11，Fabric，26.6.x）：模组通过它的「元素渲染器」扩展点（`HudMod.INSTANCE.getMinimap().getOverMapRendererHandler().add(...)`）把领地画在 Xaero 小地图上，不改其代码、不打包其 jar；构建需要把 Xaero 的 jar 放进 `client/libs/`（该目录已 gitignore，许可证不允许分发）。
+1. 装了 Xaero's Minimap（1.21.11，Fabric，26.6.x）：通过它的「元素渲染器」扩展点（`HudMod.INSTANCE.getMinimap().getOverMapRendererHandler().add(...)`）把领地画在小地图上。
+2. 装了 Xaero's World Map（1.21.11，Fabric，1.47.x）：通过它的 `WorldMap.mapElementRenderHandler.add(...)` 把领地画在全屏大地图上。两者是独立模组，可分别安装，都装则两处都显示。
+3. 构建需要把 Xaero 的 jar 放进 `client/libs/`（已 gitignore，ARR 许可证不允许分发）。
 2. 没装 Xaero：本模组不渲染任何东西（已移除自带的简易 HUD）。
 3. 不再支持 JourneyMap。
 
