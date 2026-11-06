@@ -39,7 +39,7 @@ cd client
 gradle build
 ```
 
-产物：`client/build/libs/pmxxlclaims-1.0.0.jar`。
+产物：`client/build/libs/pmxxlclaims-1.0.2.jar`。
 
 ## 部署
 

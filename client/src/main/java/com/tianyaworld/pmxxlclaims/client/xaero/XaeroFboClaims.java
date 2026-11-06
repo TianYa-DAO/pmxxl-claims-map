@@ -65,8 +65,8 @@ public final class XaeroFboClaims {
         if (!(pixelsPerBlock > 0.0005)) {
             pixelsPerBlock = 1.0;
         }
-        float mainThickness = (float) Math.max(0.05, 2.0 / pixelsPerBlock);
-        float subThickness = (float) Math.max(0.05, 1.0 / pixelsPerBlock);
+        float mainThickness = (float) Math.max(0.02, 1.0 / pixelsPerBlock);
+        float subThickness = (float) Math.max(0.02, 0.5 / pixelsPerBlock);
         int borderColor = 0xE0FFFFFF;
         poseStack.push();
         try {
