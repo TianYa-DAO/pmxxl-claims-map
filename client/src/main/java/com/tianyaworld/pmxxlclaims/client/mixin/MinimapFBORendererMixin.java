@@ -30,6 +30,12 @@ public abstract class MinimapFBORendererMixin {
                                                VertexConsumer overlayBuffer, MultiTextureRenderTypeRendererProvider providers) {
         instance.drawMinimap(session, poseStack, helper, xFloored, zFloored, minViewX, minViewZ, maxViewX, maxViewZ,
                 zooming, zoom, dimensionScale, overlayBuffer, providers);
-        XaeroFboClaims.draw(poseStack, helper, xFloored, zFloored, dimensionScale);
+        double uiScale = 1.0;
+        try {
+            uiScale = xaero.common.HudMod.INSTANCE.getSettings().getMinimapScale();
+        } catch (Throwable ignored) {
+        }
+        XaeroFboClaims.draw(poseStack, helper, xFloored, zFloored, dimensionScale,
+                minViewX, minViewZ, maxViewX, maxViewZ, zoom, uiScale);
     }
 }

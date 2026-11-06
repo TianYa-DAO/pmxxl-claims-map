@@ -28,7 +28,8 @@ public final class XaeroFboClaims {
         return System.currentTimeMillis() - lastDrawAt < FRESH_MS;
     }
 
-    public static void draw(MatrixStack poseStack, MinimapRendererHelper helper, int xFloored, int zFloored, double dimensionScale) {
+    public static void draw(MatrixStack poseStack, MinimapRendererHelper helper, int xFloored, int zFloored, double dimensionScale,
+                            int minViewX, int minViewZ, int maxViewX, int maxViewZ, double zoom, double uiScale) {
         if (!ClientConfig.enabled() || !ClientConfig.putInMapLayer()) {
             return;
         }
@@ -60,6 +61,24 @@ public final class XaeroFboClaims {
             LOGGER.info("xaero fbo claims draw: dimensionScale=" + dimensionScale + " camera=" + xFloored + "," + zFloored);
         }
         int alpha = ClientConfig.claimAlpha();
+        double viewBlocksX = Math.max(1, maxViewX - minViewX);
+        double viewBlocksZ = Math.max(1, maxViewZ - minViewZ);
+        MinecraftClient mc = MinecraftClient.getInstance();
+        double screenWidth = 128.0;
+        try {
+            var session = xaero.hud.minimap.BuiltInHudModules.MINIMAP.getCurrentSession();
+            if (session != null) {
+                screenWidth = session.getWidth(mc.getWindow().getScaleFactor());
+            }
+        } catch (Throwable ignored) {
+        }
+        double pixelsPerBlock = screenWidth / viewBlocksX;
+        if (!(pixelsPerBlock > 0.0001)) {
+            pixelsPerBlock = 1.0;
+        }
+        float mainThickness = (float) Math.max(0.05, 2.0 / pixelsPerBlock);
+        float subThickness = (float) Math.max(0.05, 1.0 / pixelsPerBlock);
+        int borderColor = 0xE0FFFFFF;
         poseStack.push();
         try {
             poseStack.translate((float) -xFloored, (float) -zFloored, 0.0f);
@@ -71,6 +90,11 @@ public final class XaeroFboClaims {
                 float x2 = box.maxX() + 1.0f;
                 float y2 = box.maxZ() + 1.0f;
                 helper.drawMyColoredRect(poseStack.peek().getPositionMatrix(), x1, y1, x2, y2, color);
+                float thickness = subs.get(i) ? subThickness : mainThickness;
+                helper.drawMyColoredRect(poseStack.peek().getPositionMatrix(), x1, y1, x2, y1 + thickness, borderColor);
+                helper.drawMyColoredRect(poseStack.peek().getPositionMatrix(), x1, y2 - thickness, x2, y2, borderColor);
+                helper.drawMyColoredRect(poseStack.peek().getPositionMatrix(), x1, y1, x1 + thickness, y2, borderColor);
+                helper.drawMyColoredRect(poseStack.peek().getPositionMatrix(), x2 - thickness, y1, x2, y2, borderColor);
             }
         } finally {
             poseStack.pop();
