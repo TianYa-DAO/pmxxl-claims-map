@@ -1,0 +1,11 @@
+{
+  "required": false,
+  "package": "com.tianyaworld.pmxxlclaims.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "MinimapFBORendererMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

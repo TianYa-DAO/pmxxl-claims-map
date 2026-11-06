@@ -13,10 +13,15 @@ public final class ClientConfig {
 
     private static boolean enabled = true;
     private static boolean clipToMinimap = false;
+    private static boolean putInMapLayer = true;
     private static int claimAlpha = 0x66;
     private static float xaeroScale = 1.0f;
 
     private ClientConfig() {
+    }
+
+    public static boolean putInMapLayer() {
+        return putInMapLayer;
     }
 
     public static boolean clipToMinimap() {
@@ -47,6 +52,9 @@ public final class ClientConfig {
         }
         try {
             JsonObject root = JsonParser.parseString(Files.readString(path, StandardCharsets.UTF_8)).getAsJsonObject();
+            if (root.has("putInMapLayer")) {
+                putInMapLayer = root.get("putInMapLayer").getAsBoolean();
+            }
             if (root.has("clipToMinimap")) {
                 clipToMinimap = root.get("clipToMinimap").getAsBoolean();
             }
@@ -67,6 +75,7 @@ public final class ClientConfig {
         JsonObject root = new JsonObject();
         root.addProperty("enabled", enabled);
         root.addProperty("clipToMinimap", clipToMinimap);
+        root.addProperty("putInMapLayer", putInMapLayer);
         root.addProperty("claimAlpha", claimAlpha);
         root.addProperty("xaeroScale", xaeroScale);
         try {

@@ -373,7 +373,7 @@ public final class XaeroClaimsBridge {
         public boolean renderElement(ClaimBox box, boolean first, boolean clipped, double x, float y, double z,
                                      double depth, MinimapElementRenderInfo info, MinimapElementGraphics graphics,
                                      VertexConsumerProvider.Immediate buffers) {
-            if (clipped || !ClientConfig.enabled()) {
+            if (clipped || !ClientConfig.enabled() || XaeroFboClaims.isInLayer()) {
                 return false;
             }
             double units = unitsPerBlock();

@@ -9,6 +9,7 @@ base {
     archivesName = project.archives_base_name
 }
 
+
 repositories {
     mavenCentral()
     maven { url = 'https://maven.fabricmc.net/' }
